@@ -2,7 +2,7 @@
 # Build, test, and publish NuGet package to Azure Artifacts Feed
 
 trigger:
-- main
+- master
 
 pool:
   vmImage: 'windows-latest'
