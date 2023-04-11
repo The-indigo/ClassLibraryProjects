@@ -44,6 +44,7 @@ steps:
     configuration: '$(buildConfiguration)'
 
 
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
@@ -52,14 +53,6 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
-    versioningScheme: 'byEnvVar'
-    versionEnvVar: 'BUILD_BUILDNUMBER'
-    packDestination: '$(Build.ArtifactStagingDirectory)'
-    arguments: '--include-symbols'
 
 - task: NuGetAuthenticate@0
   inputs:
