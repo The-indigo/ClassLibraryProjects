@@ -45,7 +45,7 @@ steps:
 
 - task: NuGetCommand@2
   inputs:
-    command: 'pack'
+    command: 'msbuild -t:pack'
     packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_BUILDNUMBER'
