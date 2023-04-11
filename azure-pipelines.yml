@@ -46,7 +46,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
-    packagesToPack: '$(System.DefaultWorkingDirectory)/StringLibrary.csproj'
+    packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
     versioningScheme: 'byPrereleaseNumber'
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
