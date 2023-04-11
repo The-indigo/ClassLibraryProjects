@@ -45,7 +45,7 @@ steps:
 
 - task: NuGetCommand@2
   inputs:
-    command: 'dotnet pack'
+    command: 'pack'
     packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_BUILDNUMBER'
