@@ -13,6 +13,9 @@ variables:
   artifactName: 'StringLibrary.1.0.0.nupkg'
 
 steps:
+- task: DotNetCoreInstaller@2
+  inputs:
+    version: '3.1.408'
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: '>=5.8.0'
