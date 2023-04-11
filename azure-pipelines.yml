@@ -43,9 +43,16 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '$(System.DefaultWorkingDirectory)/StringLibrary.csproj'
+    versioningScheme: 'byPrereleaseNumber'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+
 - task: NuGetCommand@2
   inputs:
-    command: 'msbuild -t:pack'
+    command: 'pack'
     packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'BUILD_BUILDNUMBER'
