@@ -11,11 +11,11 @@ variables:
   buildConfiguration: 'Release'
   solution: '**/*.sln'
   artifactName: 'StringLibrary.1.0.0.nupkg'
+  Major: '1'
+  Minor: '0'
+  Patch: '0'
 
 steps:
-- task: DotNetCoreInstaller@2
-  inputs:
-    version: '6.x'
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: '>=5.8.0'
@@ -53,10 +53,28 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
 
+- task: NuGetCommand@2
+  inputs:
+    command: pack
+    versioningScheme: byPrereleaseNumber
+    majorVersion: '$(Major)'
+    minorVersion: '$(Minor)'
+    patchVersion: '$(Patch)'
+
+- task: NuGetCommand@2
+  inputs:
+    command: pack
+    packagesToPack: '**/*.csproj'
+    packDestination: '$(Build.ArtifactStagingDirectory)'
 
 - task: NuGetAuthenticate@0
+  displayName: 'NuGet Authenticate'
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
   inputs:
-    artifactFeeds: 'nugetfeed'
+    command: push
+    publishVstsFeed: 'StringLibrary/nugetfeed'
+    allowPackageConflicts: true
 
 - task: NuGetCommand@2
   inputs:
