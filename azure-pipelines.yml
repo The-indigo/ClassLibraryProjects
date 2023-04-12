@@ -16,43 +16,11 @@ variables:
   Patch: '0'
 
 steps:
-- task: NuGetToolInstaller@1
-  inputs:
-    versionSpec: '>=5.8.0'
-    checkLatest: true
-
 - task: NuGetCommand@2
   inputs:
-    command: 'restore'
-    restoreSolution: '$(solution)'
-
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:Configuration=$(buildConfiguration)'
-    platform: 'Any CPU'
-    clean: true
-
-- task: VSTest@2
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\$(buildConfiguration)\*test*.dll
-      !**\obj\**
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '$(Build.Repository.LocalPath)\StringLibrary\StringLibrary.csproj'
-    versioningScheme: 'byPrereleaseNumber'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-
-
+    command: pack
+    packagesToPack: '**/*.csproj'
+    packDestination: '$(Build.ArtifactStagingDirectory)'
 - task: NuGetCommand@2
   inputs:
     command: pack
@@ -60,13 +28,7 @@ steps:
     majorVersion: '$(Major)'
     minorVersion: '$(Minor)'
     patchVersion: '$(Patch)'
-
-- task: NuGetCommand@2
-  inputs:
-    command: pack
-    packagesToPack: '**/*.csproj'
-    packDestination: '$(Build.ArtifactStagingDirectory)'
-
+  
 - task: NuGetAuthenticate@0
   displayName: 'NuGet Authenticate'
 - task: NuGetCommand@2
@@ -75,10 +37,3 @@ steps:
     command: push
     publishVstsFeed: 'StringLibrary/nugetfeed'
     allowPackageConflicts: true
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)\$(artifactName).$(Build.BuildNumber).nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: 'nugetfeed'
