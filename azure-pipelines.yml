@@ -30,14 +30,14 @@ steps:
     displayName: Pack
     inputs:
       command: 'pack'
-      packagesToPack: '$(System.DefaultWorkingDirectory)/$(packageName).csproj'
+      packagesToPack: '**/*.csproj'
       versioningScheme: 'byPrereleaseNumber'
       majorVersion: '1'
       minorVersion: '0'
       patchVersion: '0'
       packDirectory: '$(Build.ArtifactStagingDirectory)'
-      includeSymbols: false
-      includeSource: false
+      includeSymbols: true
+      includeSource: true
 
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
