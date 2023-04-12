@@ -1,83 +1,67 @@
-# YAML pipeline
-# Build, test, and publish NuGet package to Azure Artifacts Feed
-
 trigger:
-- master
+- main
 
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  buildConfiguration: 'Release'
   solution: '**/*.sln'
-  artifactName: 'StringLibrary.1.0.0.nupkg'
-  Major: '1'
-  Minor: '0'
-  Patch: '0'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  nugetFeed: 'nugetfeed'  # Replace with the name of your Azure Artifacts feed
 
 steps:
-- task: DotNetCoreInstaller@2
+- task: NuGetAuthenticate@0
+  displayName: 'NuGet Authenticate'
   inputs:
-    version: '6.x'
-- task: NuGetToolInstaller@1
+    nuGetServiceConnections: '$(nugetFeed)'
+    includeNuGetOrg: false
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
   inputs:
-    versionSpec: '>=5.8.0'
-    checkLatest: true
+    packageType: sdk
+    version: '3.x'
+
 - task: DotNetCoreCLI@2
-  displayName: 'dotnet restore'
+  displayName: 'Restore NuGet Packages'
   inputs:
     command: 'restore'
     projects: '**/*.csproj'
-
-- task: CmdLine@2
-  displayName: 'Set NuGet environment variable'
-  inputs:
-    script: |
-      dotnet nuget config globalPackagesFolder="$(build.artifactStagingDirectory)\.nuget\packages" -g
-      echo "##vso[task.setvariable variable=NUGET_ENABLE_LEGACY_CSPROJ_PACK]true"
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:Configuration=$(buildConfiguration)'
-    platform: 'Any CPU'
-    clean: true
-
-- task: VSTest@2
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\$(buildConfiguration)\*test*.dll
-      !**\obj\**
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-- task: NuGetCommand@2
-  inputs:
-    command: pack
-    packagesToPack: '**/*.csproj'
-    packDestination: '$(Build.ArtifactStagingDirectory)'
-- task: NuGetCommand@2
-  inputs:
-    command: pack
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '$(Major)'
-    minorVersion: '$(Minor)'
-    patchVersion: '$(Patch)'
+    feedsToUse: 'config'
+    nugetConfigPath: 'NuGet.config'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Build solution'
   inputs:
-    command: pack
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '$(Major)'
-    minorVersion: '$(Minor)'
-    patchVersion: '$(Patch)'
-      
-- task: NuGetAuthenticate@0
-  displayName: 'NuGet Authenticate'
+    command: 'build'
+    projects: '**/*.sln'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Pack project'
+  inputs:
+    command: 'pack'
+    packagesToPack: 'StringLibrary/StringLibrary.csproj'
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'PackageVersion'
+    includesymbols: true
+    includesource: true
+    outputDir: '$(Build.ArtifactStagingDirectory)/packages'
+
 - task: NuGetCommand@2
-  displayName: 'NuGet push'
+  displayName: 'Push to Azure Artifacts Feed'
   inputs:
-    command: push
-    publishVstsFeed: 'StringLibrary/nugetfeed'
+    command: 'push'
+    feedsToUse: 'select'
+    vstsFeed: '$(nugetFeed)'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/*.nupkg'
+    includeSymbols: true
     allowPackageConflicts: true
+  condition: succeededOrFailed()
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Pipeline Artifact'
+  inputs:
+    artifactName: 'nuget-pipeline'
+    targetPath: '$(Build.ArtifactStagingDirectory)/packages'
