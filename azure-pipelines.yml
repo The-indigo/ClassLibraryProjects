@@ -36,8 +36,8 @@ steps:
       minorVersion: '0'
       patchVersion: '0'
       packDirectory: '$(Build.ArtifactStagingDirectory)'
-      includeSymbols: true
-      includeSource: true
+      includeSymbols: false
+      includeSource: false
 
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
@@ -45,7 +45,7 @@ steps:
     displayName: 'NuGet push'
     inputs:
       command: push
-      publishVstsFeed: '<projectName>/<feed>'
+      publishVstsFeed: 'StringLibrary/nugetfeed'
       allowPackageConflicts: true
 
   - task: NuGetCommand@2
@@ -54,5 +54,5 @@ steps:
       command: 'push'
       packagesToPush: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildConfiguration).nupkg'
       nuGetFeedType: 'internal'
-      publishVstsFeed: '<Your Azure Artifacts feed>'
+      publishVstsFeed: 'nugetfeed'
       allowPackageConflicts: true
