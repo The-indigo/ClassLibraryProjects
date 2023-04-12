@@ -10,6 +10,9 @@ variables:
   buildConfiguration: 'Release'
   feedName: 'nugetfeed'
   packageName: 'StringLibrary'
+  Major: '1'
+  Minor: '0'
+  Patch: '0'
 
 steps:
   - task: DotNetCoreCLI@2
@@ -27,17 +30,12 @@ steps:
       arguments: '--configuration $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
-    displayName: Pack
     inputs:
-      command: 'pack'
-      packagesToPack: '**/*.csproj'
-      versioningScheme: 'byPrereleaseNumber'
-      majorVersion: '1'
-      minorVersion: '0'
-      patchVersion: '0'
-      packDirectory: '$(Build.ArtifactStagingDirectory)'
-      includeSymbols: true
-      includeSource: true
+     command: pack
+     versioningScheme: byPrereleaseNumber
+     majorVersion: '$(Major)'
+     minorVersion: '$(Minor)'
+     patchVersion: '$(Patch)'
 
   - task: NuGetAuthenticate@0
     displayName: 'NuGet Authenticate'
