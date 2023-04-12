@@ -1,5 +1,7 @@
+# Azure Pipelines YAML file
+
 trigger:
-- main
+  - main
 
 pool:
   vmImage: 'windows-latest'
@@ -8,44 +10,49 @@ variables:
   buildConfiguration: 'Release'
   feedName: 'nugetfeed'
   packageName: 'StringLibrary'
-  packageVersion: '$(Build.BuildNumber)'
 
 steps:
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '**/*.sln'
-    feedsToUse: 'select'
-    vstsFeed: 'nugetfeed'
-    includeNuGetOrg: false
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: 'restore'
+      projects: '**/*.csproj'
+      feedsToUse: 'select'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    arguments: '--configuration $(buildConfiguration)'
-    projects: '**/*.csproj'
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+      arguments: '--configuration $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/*.csproj'
-    versioningScheme: 'byBuildNumber'
-    includeSymbols: true
-    includeSource: true
-    outputDir: '$(Build.ArtifactStagingDirectory)'
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: 'pack'
+      packagesToPack: '$(System.DefaultWorkingDirectory)/$(packageName).csproj'
+      versioningScheme: 'byPrereleaseNumber'
+      majorVersion: '1'
+      minorVersion: '0'
+      patchVersion: '0'
+      packDirectory: '$(Build.ArtifactStagingDirectory)'
+      includeSymbols: true
+      includeSource: true
 
-- task: NuGetAuthenticate@0
-  inputs:
-    nuGetServiceConnections: '"https://pkgs.dev.azure.com/aadepo10/NugetPackage/_packaging/nugetfeed/nuget/v3/index.json"'
-    ignoreInvalidServiceConnection: true
+  - task: NuGetAuthenticate@0
+    displayName: 'NuGet Authenticate'
+  - task: NuGetCommand@2
+    displayName: 'NuGet push'
+    inputs:
+      command: push
+      publishVstsFeed: '<projectName>/<feed>'
+      allowPackageConflicts: true
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: 'nugetfeed'
-    allowPackageConflicts: true
-    versioningScheme: 'byBuildNumber'
-    authType: 'serviceEndpoint'
-    serviceEndpoint: 'https://pkgs.dev.azure.com/aadepo10/NugetPackage/_packaging/nugetfeed/nuget/v3/index.json'
+  - task: NuGetCommand@2
+    displayName: 'Push NuGet package'
+    inputs:
+      command: 'push'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildConfiguration).nupkg'
+      nuGetFeedType: 'internal'
+      publishVstsFeed: '<Your Azure Artifacts feed>'
+      allowPackageConflicts: true
