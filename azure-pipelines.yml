@@ -40,6 +40,19 @@ steps:
     searchFolder: '$(System.DefaultWorkingDirectory)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: CmdLine@2
+  displayName: 'Set NuGet environment variable'
+  inputs:
+    script: |
+      dotnet nuget config globalPackagesFolder="$(build.artifactStagingDirectory)\.nuget\packages" -g
+      echo "##vso[task.setvariable variable=NUGET_ENABLE_LEGACY_CSPROJ_PACK]true"
+
 - task: NuGetCommand@2
   inputs:
     command: pack
