@@ -16,35 +16,6 @@ variables:
   Patch: '0'
 
 steps:
-- task: DotNetCoreInstaller@2
-  inputs:
-    version: '6.x'
-- task: NuGetToolInstaller@1
-  inputs:
-    versionSpec: '>=5.8.0'
-    checkLatest: true
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'restore'
-    restoreSolution: '$(solution)'
-
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:Configuration=$(buildConfiguration)'
-    platform: 'Any CPU'
-    clean: true
-
-- task: VSTest@2
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\$(buildConfiguration)\*test*.dll
-      !**\obj\**
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
 - task: NuGetCommand@2
   inputs:
     command: pack
@@ -57,7 +28,15 @@ steps:
     majorVersion: '$(Major)'
     minorVersion: '$(Minor)'
     patchVersion: '$(Patch)'
-  
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: pack
+    versioningScheme: byPrereleaseNumber
+    majorVersion: '$(Major)'
+    minorVersion: '$(Minor)'
+    patchVersion: '$(Patch)'
+      
 - task: NuGetAuthenticate@0
   displayName: 'NuGet Authenticate'
 - task: NuGetCommand@2
